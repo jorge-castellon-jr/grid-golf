@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Dot } from "./Dot";
 
 // TypeScript Enums and Types
 enum CellType {
@@ -24,8 +25,8 @@ type Direction =
 type Power = 1 | 3 | 6;
 
 const GolfGame: React.FC = () => {
-  const WIDTH = 16;
-  const HEIGHT = 26;
+  const WIDTH = 14;
+  const HEIGHT = 20;
 
   const [grid, setGrid] = useState<Grid>(
     Array(HEIGHT)
@@ -38,6 +39,7 @@ const GolfGame: React.FC = () => {
   const [selectedPower, setSelectedPower] = useState<Power>(1);
   const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 1000000));
   const [gameComplete, setGameComplete] = useState<boolean>(false);
+  const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
 
   // Initialize game
   useEffect(() => {
@@ -211,6 +213,7 @@ const GolfGame: React.FC = () => {
 
   // Handle player movement
   const handleMove = (direction: Direction): void => {
+    setIsControlsOpen(false);
     if (gameComplete || !playerPosition) return;
 
     const [currentX, currentY] = playerPosition;
@@ -296,9 +299,6 @@ const GolfGame: React.FC = () => {
     // Check if hole is complete
     if (holePosition && newX === holePosition[0] && newY === holePosition[1]) {
       setGameComplete(true);
-      setTimeout(() => {
-        alert(`Hole completed in ${strokes + 1} strokes!`);
-      }, 100);
     }
   };
 
@@ -320,15 +320,13 @@ const GolfGame: React.FC = () => {
             className="game-board"
             style={{
               gridTemplateColumns: `repeat(${WIDTH}, 1fr)`,
-              width: "100%",
-              maxWidth: "600px",
-              aspectRatio: `${WIDTH} / ${HEIGHT}`,
             }}
           >
             {grid.map((row, y) =>
               row.map((cell, x) => (
                 <div
                   key={`${x}-${y}`}
+                  style={{ aspectRatio: 1 }}
                   className={`cell ${cell === CellType.EMPTY
                       ? "empty"
                       : cell === CellType.FAIRWAY
@@ -347,40 +345,39 @@ const GolfGame: React.FC = () => {
                   {cell === CellType.TREE && "🌲"}
                   {cell === CellType.PLAYER && "🏌️"}
                   {cell === CellType.HOLE && "⛳"}
+                  {(cell === CellType.GREEN ||
+                    cell === CellType.FAIRWAY ||
+                    cell === CellType.EMPTY) && <Dot size={8} />}
                 </div>
               )),
             )}
           </div>
 
-          {/* Controls */}
-          <div className="controls">
-            <div className="power-select">
-              <h3>Power</h3>
-              <div className="power-buttons">
-                <button
-                  className={selectedPower === 1 ? "active" : ""}
-                  onClick={() => setSelectedPower(1)}
-                >
-                  1
-                </button>
-                <button
-                  className={selectedPower === 3 ? "active" : ""}
-                  onClick={() => setSelectedPower(3)}
-                >
-                  3
-                </button>
-                <button
-                  className={selectedPower === 6 ? "active" : ""}
-                  onClick={() => setSelectedPower(6)}
-                >
-                  6
-                </button>
-              </div>
-            </div>
+          <div
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: "#228b22",
+              color: "white",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "4rem",
+              margin: "1rem",
+              borderRadius: "1rem",
+            }}
+            onClick={() => setIsControlsOpen(true)}
+          >
+            Open Controls
+          </div>
 
+          {/* Controls */}
+          <div className={isControlsOpen ? "controls open" : "controls"}>
             <div className="direction-select">
               <h3>Direction</h3>
-              <div className="direction-grid">
+              <div className="direction-grid" style={{ aspectRatio: 1 }}>
                 <button onClick={() => handleMove("upLeft")}>↖</button>
                 <button onClick={() => handleMove("up")}>↑</button>
                 <button onClick={() => handleMove("upRight")}>↗</button>
@@ -395,12 +392,69 @@ const GolfGame: React.FC = () => {
               </div>
             </div>
 
-            <button
-              className="new-hole-btn"
-              onClick={() => setSeed(Math.floor(Math.random() * 1000000))}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                alignItems: "flex-end",
+              }}
             >
-              New Hole
-            </button>
+              <div className="power-select">
+                <h3>Power</h3>
+                <div className="power-buttons">
+                  <button
+                    className={selectedPower === 1 ? "active" : ""}
+                    onClick={() => setSelectedPower(1)}
+                  >
+                    1
+                  </button>
+                  <button
+                    className={selectedPower === 3 ? "active" : ""}
+                    onClick={() => setSelectedPower(3)}
+                  >
+                    3
+                  </button>
+                  <button
+                    className={selectedPower === 6 ? "active" : ""}
+                    onClick={() => setSelectedPower(6)}
+                  >
+                    6
+                  </button>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "4rem",
+                  borderRadius: "1rem",
+                }}
+                onClick={() => {
+                  setSeed(Math.floor(Math.random() * 1000000));
+                  setIsControlsOpen(false);
+                }}
+              >
+                New Hole
+              </div>
+            </div>
+            <div
+              style={{
+                backgroundColor: "#8d8d8d",
+                color: "white",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "4rem",
+                borderRadius: "1rem",
+              }}
+              onClick={() => setIsControlsOpen(false)}
+            >
+              Close Controls
+            </div>
           </div>
         </div>
       </div>

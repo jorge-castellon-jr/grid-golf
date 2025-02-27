@@ -14,34 +14,17 @@
 
 body {
   margin: 0;
-  display: flex;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-#root {
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
 }
 
 .golf-game {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
   background-color: #f5f5f5;
-  min-height: 100vh;
 }
 
 .game-container {
-  background-color: white;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  max-width: 1000px;
-  width: 100%;
 }
 
 .header {
@@ -131,6 +114,10 @@ body {
 }
 
 .controls {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  right: 0;
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -138,6 +125,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition: bottom 0.3s ease-in-out;
+}
+.controls.open {
+  bottom: 0;
 }
 
 .power-select h3,
@@ -202,6 +193,7 @@ body {
 }
 
 .modal-overlay {
+  background: red;
   position: fixed;
   top: 0;
   left: 0;
@@ -220,6 +212,7 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   max-width: 24rem;
+  margin: 20px;
   width: 100%;
 }
 
