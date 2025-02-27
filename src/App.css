@@ -115,9 +115,11 @@ body {
 
 .controls {
   position: fixed;
-  bottom: -100%;
+  bottom: -1000px;
   left: 0;
   right: 0;
+  max-width: 500px;
+  margin: 0 auto;
   background-color: white;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
