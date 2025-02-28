@@ -1,5 +1,18 @@
 import { useState, useEffect } from "react";
 
+// Course names that will be used as seeds for initial courses
+const COURSE_NAMES = [
+  "Pine Valley",
+  "Augusta National",
+  "St. Andrews",
+  "Pebble Beach",
+  "Royal County Down",
+  "Cypress Point",
+  "Shinnecock Hills",
+  "Royal Melbourne",
+  "Muirfield",
+];
+
 export interface Hole {
   id: string;
   name: string;
@@ -18,6 +31,36 @@ export interface Course {
 }
 
 const STORAGE_KEY = "grid-golf-courses";
+
+// Generate a seed from a string
+const generateSeedFromString = (str: string, modifier: number = 0): number => {
+  let hash = 0;
+  const modifiedStr = `${str}-${modifier}`;
+  for (let i = 0; i < modifiedStr.length; i++) {
+    const char = modifiedStr.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
+// Create holes for a course
+const createHolesForCourse = (
+  courseName: string,
+  numHoles: number = 10,
+): Hole[] => {
+  return Array.from({ length: numHoles }, (_, index) => {
+    // Use different seed for each hole by adding a modifier
+    const seed = generateSeedFromString(courseName, index + 1);
+    return {
+      id: `${courseName}-hole-${index + 1}`,
+      name: `Hole ${index + 1}`,
+      seed,
+      par: 3, // Default par
+      completed: false,
+    };
+  });
+};
 
 export const useGolfCourses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -39,44 +82,43 @@ export const useGolfCourses = () => {
     }
   }, [courses, initialized]);
 
-  // Create a new course
+  // Create a new course with 9 holes
   const createCourse = (name: string) => {
+    const holes = createHolesForCourse(name);
+
     const newCourse: Course = {
       id: Date.now().toString(),
       name,
-      holes: [],
+      holes,
       createdAt: Date.now(),
     };
+
     setCourses((prevCourses) => [...prevCourses, newCourse]);
     return newCourse;
   };
 
-  // Add a hole to a course
-  const addHole = (
-    courseId: string,
-    holeName: string,
-    seed: number,
-    par: number = 3,
-  ) => {
+  // Delete a course
+  const deleteCourse = (courseId: string) => {
     setCourses((prevCourses) =>
-      prevCourses.map((course) => {
-        if (course.id === courseId) {
-          const newHole: Hole = {
-            id: Date.now().toString(),
-            name: holeName,
-            seed,
-            par,
-            completed: false,
-          };
-          return {
-            ...course,
-            holes: [...course.holes, newHole],
-            lastPlayed: Date.now(),
-          };
-        }
-        return course;
-      }),
+      prevCourses.filter((course) => course.id !== courseId),
     );
+  };
+
+  // Generate all predefined courses
+  const generateAllCourses = () => {
+    const newCourses = COURSE_NAMES.map((name) => {
+      const holes = createHolesForCourse(name);
+
+      return {
+        id: name,
+        name,
+        holes,
+        createdAt: Date.now(),
+      };
+    });
+
+    setCourses(newCourses);
+    return newCourses;
   };
 
   // Update hole progress
@@ -110,41 +152,20 @@ export const useGolfCourses = () => {
     );
   };
 
-  // Delete a course
-  const deleteCourse = (courseId: string) => {
-    setCourses((prevCourses) =>
-      prevCourses.filter((course) => course.id !== courseId),
-    );
-  };
-
   // Create default course if none exist
-  const ensureDefaultCourse = () => {
+  const ensureCoursesExist = () => {
     if (courses.length === 0) {
-      const defaultCourse = {
-        id: Date.now().toString(),
-        name: "First Course",
-        holes: Array.from({ length: 9 }, (_, i) => ({
-          id: `default-hole-${i + 1}`,
-          name: `Hole ${i + 1}`,
-          seed: Math.floor(Math.random() * 1000000),
-          par: 3,
-          completed: false,
-        })),
-        createdAt: Date.now(),
-      };
-      setCourses([defaultCourse]);
-      return defaultCourse;
+      return generateAllCourses();
     }
-    return courses[0];
+    return courses;
   };
 
   return {
     courses,
     initialized,
     createCourse,
-    addHole,
-    updateHoleProgress,
     deleteCourse,
-    ensureDefaultCourse,
+    updateHoleProgress,
+    ensureCoursesExist,
   };
 };

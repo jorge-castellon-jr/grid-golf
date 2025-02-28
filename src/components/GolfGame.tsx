@@ -321,19 +321,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
     }
   };
 
-  // Export current hole seed
-  const exportSeed = () => {
-    navigator.clipboard
-      .writeText(seed.toString())
-      .then(() => {
-        alert("Seed copied to clipboard!");
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-        alert("Seed: " + seed);
-      });
-  };
-
   return (
     <div className="golf-game">
       <div className="game-container">
@@ -386,10 +373,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
                 </div>
               )),
             )}
-          </div>
-
-          <div className="export-seed-btn-game" onClick={exportSeed}>
-            Export Seed
           </div>
 
           <div

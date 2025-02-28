@@ -129,15 +129,13 @@ body {
   border-radius: 4px;
 }
 
-.course-list,
-.hole-list {
+.course-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.course-item,
-.hole-item {
+.course-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -150,8 +148,7 @@ body {
   border: 2px solid transparent;
 }
 
-.course-item:hover,
-.hole-item:hover {
+.course-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -161,8 +158,7 @@ body {
   background-color: rgba(94, 234, 212, 0.05);
 }
 
-.course-details,
-.hole-details {
+.course-details {
   flex: 1;
 }
 
@@ -174,8 +170,7 @@ body {
   font-weight: 600;
 }
 
-.course-details p,
-.hole-details p {
+.course-details p {
   margin: 0;
   color: var(--text-muted);
 }
@@ -194,26 +189,78 @@ body {
   font-size: 0.9rem;
 }
 
-.hole-item .hole-details p {
+/* Hole list styling */
+.hole-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.hole-item {
+  background-color: white;
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.hole-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hole-item.completed {
+  border-color: var(--green);
+  background-color: rgba(34, 197, 94, 0.05);
+}
+
+.hole-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hole-details h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-dark);
+  font-family: var(--font-heading);
+  font-weight: 600;
   display: flex;
   align-items: center;
 }
 
-.hole-item .hole-details p:before {
+.hole-details h3:before {
+  content: "⛳";
+  margin-right: 8px;
+}
+
+.hole-details p {
+  margin: 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.hole-details p:before {
   content: "🏆";
   margin-right: 5px;
 }
 
 .hole-actions {
+  margin-top: 1rem;
   display: flex;
-  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
-.hole-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+.hole-actions button {
+  background-color: var(--primary);
+  color: white;
+  flex: 1;
 }
 
 /* Buttons */
@@ -239,33 +286,6 @@ button:active {
   transform: translateY(1px);
 }
 
-.import-seed-btn {
-  background-color: #8b5cf6;
-  color: white;
-}
-
-.import-seed-btn:before {
-  content: "📥";
-}
-
-.delete-course-btn {
-  background-color: #ef4444;
-  color: white;
-}
-
-.delete-course-btn:before {
-  content: "🗑️";
-}
-
-.export-seed-btn {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.export-seed-btn:before {
-  content: "📤";
-}
-
 .play-hole-btn {
   background-color: var(--primary);
   color: white;
@@ -275,8 +295,7 @@ button:active {
   content: "🏌️";
 }
 
-.add-course-btn,
-.add-hole-btn {
+.add-course-btn {
   background-color: #f3f4f6;
   color: var(--primary-dark);
   padding: 1rem;
@@ -288,8 +307,7 @@ button:active {
   font-weight: 600;
 }
 
-.add-course-btn:hover,
-.add-hole-btn:hover {
+.add-course-btn:hover {
   background-color: #e5e7eb;
 }
 
@@ -335,63 +353,47 @@ button:active {
   flex: 1;
 }
 
-/* Seed Importer Styles */
-.seed-importer h3 {
-  color: var(--primary-dark);
-  margin-top: 0;
-  font-family: var(--font-heading);
-  font-weight: 700;
-}
-
-.seed-importer p {
-  color: var(--text-muted);
-  margin-bottom: 1.5rem;
-}
-
-.input-group {
-  margin-bottom: 1.5rem;
-}
-
-.input-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: var(--border-radius);
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.3);
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 0.875rem;
+/* Course creation animation */
+.new-course-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  color: white;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(5px);
+}
+
+.new-course-animation h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.loading-holes {
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.error-message:before {
-  content: "⚠️";
-  margin-right: 5px;
+.loading-holes p {
+  margin-top: 1rem;
+  font-size: 1.2rem;
 }
 
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.import-btn {
-  background-color: var(--primary);
-  color: white;
-}
-
-.cancel-btn {
-  background-color: #6b7280;
-  color: white;
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
 }
 
 /* ===== Game Styles ===== */
@@ -512,33 +514,6 @@ button:active {
   100% {
     transform: scale(1);
   }
-}
-
-.export-seed-btn-game {
-  position: fixed;
-  bottom: 6rem;
-  left: 0;
-  right: 0;
-  margin: 0 1rem;
-  text-align: center;
-  padding: 0.8rem;
-  background-color: #3b82f6;
-  color: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-md);
-  z-index: 10;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  font-weight: 600;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.export-seed-btn-game:before {
-  content: "📤";
-  margin-right: 5px;
 }
 
 .controls-toggle {
@@ -751,8 +726,7 @@ button:active {
       env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
-  .controls-toggle,
-  .export-seed-btn-game {
+  .controls-toggle {
     margin-bottom: env(safe-area-inset-bottom, 1rem);
   }
 }
@@ -769,15 +743,19 @@ button:active {
 
   .course-item,
   .hole-item,
-  .new-course-input,
   .modal,
   .controls,
-  .score {
+  .score,
+  .new-course-input {
     background-color: #1e293b;
   }
 
   .course-item.selected {
     background-color: rgba(20, 184, 166, 0.1);
+  }
+
+  .hole-item.completed {
+    background-color: rgba(34, 197, 94, 0.1);
   }
 
   .add-course-btn,
@@ -832,8 +810,7 @@ button:active {
     gap: 1rem;
   }
 
-  .hole-actions button,
-  .delete-course-btn {
+  .hole-actions button {
     min-width: 100px;
   }
 
@@ -843,5 +820,60 @@ button:active {
 
   .header h1 {
     font-size: 2rem;
+  }
+}
+/* Delete Button Styles */
+.delete-course-btn {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.delete-course-btn:before {
+  content: "🗑️";
+  margin-right: 5px;
+}
+
+.delete-course-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Delete Confirmation Modal */
+.delete-modal h2 {
+  color: #ef4444;
+}
+
+.delete-modal .modal-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.delete-confirm-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.delete-confirm-btn:hover {
+  background-color: #dc2626;
+}
+
+.cancel-btn {
+  background-color: #6b7280;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #4b5563;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .delete-modal {
+    background-color: #1e293b;
   }
 }

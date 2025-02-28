@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useGolfCourses } from "../hooks/useGolfCourses";
-import SeedImporter from "./SeedImporter";
 
 interface StartScreenProps {
   onStartGame: (courseId: string, holeId: string, seed: number) => void;
@@ -11,22 +10,27 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
     courses,
     initialized,
     createCourse,
-    addHole,
     deleteCourse,
-    ensureDefaultCourse,
+    ensureCoursesExist,
   } = useGolfCourses();
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [newCourseName, setNewCourseName] = useState("");
   const [showNewCourseInput, setShowNewCourseInput] = useState(false);
-  const [showSeedImporter, setShowSeedImporter] = useState(false);
+  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
+  const [currentHoleCreation, setCurrentHoleCreation] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
+    null,
+  );
 
-  // Handle initial load - create default course if needed
+  // Handle initial load - ensure courses exist
   useEffect(() => {
     if (initialized && courses.length === 0) {
-      const defaultCourse = ensureDefaultCourse();
-      setSelectedCourse(defaultCourse.id);
+      const availableCourses = ensureCoursesExist();
+      if (availableCourses.length > 0) {
+        setSelectedCourse(availableCourses[0].id);
+      }
     }
-  }, [initialized, courses.length, ensureDefaultCourse]);
+  }, [initialized, courses.length, ensureCoursesExist]);
 
   // Set selected course when courses change
   useEffect(() => {
@@ -37,46 +41,53 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
 
   const handleCreateCourse = () => {
     if (newCourseName.trim()) {
-      const newCourse = createCourse(newCourseName);
-      setSelectedCourse(newCourse.id);
-      setNewCourseName("");
-      setShowNewCourseInput(false);
+      setIsCreatingCourse(true);
+
+      // Simulate creation of 10 holes with animation
+      let holeCount = 0;
+      const interval = setInterval(() => {
+        holeCount++;
+        setCurrentHoleCreation(holeCount);
+
+        if (holeCount >= 10) {
+          clearInterval(interval);
+
+          // Actually create the course
+          const newCourse = createCourse(newCourseName);
+          setSelectedCourse(newCourse.id);
+          setNewCourseName("");
+          setShowNewCourseInput(false);
+
+          // Hide animation after a brief delay
+          setTimeout(() => {
+            setIsCreatingCourse(false);
+            setCurrentHoleCreation(0);
+          }, 500);
+        }
+      }, 200); // Update every 200ms
     }
   };
 
-  const handleAddHole = (courseId: string) => {
-    const holeNumber =
-      courses.find((c) => c.id === courseId)?.holes.length || 0;
-    const holeName = `Hole ${holeNumber + 1}`;
-    const seed = Math.floor(Math.random() * 1000000);
-    addHole(courseId, holeName, seed);
-  };
-
-  const handleImportSeed = (seed: number) => {
-    if (selectedCourse) {
-      const holeNumber =
-        courses.find((c) => c.id === selectedCourse)?.holes.length || 0;
-      const holeName = `Hole ${holeNumber + 1} (Imported)`;
-      addHole(selectedCourse, holeName, seed);
-      setShowSeedImporter(false);
+  const handleDeleteCourse = (courseId: string) => {
+    // If we're deleting the currently selected course
+    if (selectedCourse === courseId) {
+      // Find another course to select
+      const otherCourses = courses.filter((c) => c.id !== courseId);
+      if (otherCourses.length > 0) {
+        setSelectedCourse(otherCourses[0].id);
+      } else {
+        setSelectedCourse(null);
+      }
     }
-  };
 
-  const exportSeed = (seed: number) => {
-    navigator.clipboard
-      .writeText(seed.toString())
-      .then(() => {
-        alert("Seed copied to clipboard!");
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-        alert("Seed: " + seed);
-      });
+    // Delete the course
+    deleteCourse(courseId);
+    setShowDeleteConfirm(null);
   };
 
   // Don't render until initialized
   if (!initialized) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">Loading courses...</div>;
   }
 
   const selectedCourseData = courses.find((c) => c.id === selectedCourse);
@@ -96,7 +107,10 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
             >
               <div className="course-details">
                 <h3>{course.name}</h3>
-                <p>{course.holes.length} holes</p>
+                <p>
+                  {course.holes.length}{" "}
+                  {course.holes.length === 1 ? "hole" : "holes"}
+                </p>
                 {course.lastPlayed && (
                   <p className="last-played">
                     Last played:{" "}
@@ -107,17 +121,8 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
               <button
                 className="delete-course-btn"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm(`Delete course "${course.name}"?`)) {
-                    deleteCourse(course.id);
-                    if (selectedCourse === course.id && courses.length > 1) {
-                      setSelectedCourse(
-                        courses[0].id !== course.id
-                          ? courses[0].id
-                          : courses[1].id,
-                      );
-                    }
-                  }
+                  e.stopPropagation(); // Prevent selecting course when clicking delete
+                  setShowDeleteConfirm(course.id);
                 }}
               >
                 Delete
@@ -152,18 +157,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
 
       {selectedCourseData && (
         <div className="hole-selector">
-          <div className="hole-header">
-            <h2>Select Hole</h2>
-            <button
-              className="import-seed-btn"
-              onClick={() => setShowSeedImporter(true)}
-            >
-              Import Seed
-            </button>
-          </div>
+          <h2>Select Hole</h2>
           <div className="hole-list">
             {selectedCourseData.holes.map((hole) => (
-              <div key={hole.id} className="hole-item">
+              <div
+                key={hole.id}
+                className={`hole-item ${hole.completed ? "completed" : ""}`}
+              >
                 <div className="hole-details">
                   <h3>{hole.name}</h3>
                   {hole.bestScore && (
@@ -175,12 +175,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
                 </div>
                 <div className="hole-actions">
                   <button
-                    className="export-seed-btn"
-                    onClick={() => exportSeed(hole.seed)}
-                  >
-                    Export Seed
-                  </button>
-                  <button
                     className="play-hole-btn"
                     onClick={() =>
                       onStartGame(selectedCourseData.id, hole.id, hole.seed)
@@ -191,23 +185,44 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
                 </div>
               </div>
             ))}
-            <button
-              className="add-hole-btn"
-              onClick={() => handleAddHole(selectedCourseData.id)}
-            >
-              + Add New Hole
-            </button>
           </div>
         </div>
       )}
 
-      {showSeedImporter && (
+      {/* Course creation animation overlay */}
+      {isCreatingCourse && (
+        <div className="new-course-animation">
+          <h2>Creating {newCourseName}</h2>
+          <div className="loading-holes">
+            <div className="loading-spinner"></div>
+            <p>Creating hole {currentHoleCreation} of 10</p>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {showDeleteConfirm && (
         <div className="modal-overlay">
-          <div className="modal seed-modal">
-            <SeedImporter
-              onImport={handleImportSeed}
-              onCancel={() => setShowSeedImporter(false)}
-            />
+          <div className="modal delete-modal">
+            <h2>Delete Course</h2>
+            <p>
+              Are you sure you want to delete this course? This action cannot be
+              undone.
+            </p>
+            <div className="modal-buttons">
+              <button
+                className="delete-confirm-btn"
+                onClick={() => handleDeleteCourse(showDeleteConfirm)}
+              >
+                Delete
+              </button>
+              <button
+                className="cancel-btn"
+                onClick={() => setShowDeleteConfirm(null)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
