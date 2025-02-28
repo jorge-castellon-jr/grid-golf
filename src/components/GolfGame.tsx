@@ -50,6 +50,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
   const [selectedPower, setSelectedPower] = useState<Power>(0);
   const [gameComplete, setGameComplete] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(false);
+  const [validMoves, setValidMoves] = useState<Position[]>([]);
 
   // Initialize game with provided seed
   useEffect(() => {
@@ -65,6 +66,49 @@ const GolfGame: React.FC<GolfGameProps> = ({
       }, 500);
     }
   }, [gameComplete]);
+
+  // Calculate valid moves when power changes
+  useEffect(() => {
+    if (selectedPower > 0 && playerPosition) {
+      const newValidMoves = calculateValidMoves();
+      setValidMoves(newValidMoves);
+    } else {
+      setValidMoves([]);
+    }
+  }, [selectedPower, playerPosition]);
+
+  // Function to calculate all valid positions the player could move to
+  const calculateValidMoves = (): Position[] => {
+    if (!playerPosition || selectedPower === 0) return [];
+
+    const [currentX, currentY] = playerPosition;
+    const validMoves: Position[] = [];
+
+    // All 8 directions
+    const directions: [number, number][] = [
+      [0, -1], // up
+      [0, 1], // down
+      [-1, 0], // left
+      [1, 0], // right
+      [-1, -1], // up-left
+      [1, -1], // up-right
+      [-1, 1], // down-left
+      [1, 1], // down-right
+    ];
+
+    // Check each direction
+    for (const [dx, dy] of directions) {
+      const newX = currentX + dx * selectedPower;
+      const newY = currentY + dy * selectedPower;
+
+      // Check if this is a valid move
+      if (isValidMove(newX, newY)) {
+        validMoves.push([newX, newY]);
+      }
+    }
+
+    return validMoves;
+  };
 
   // Seeded random function
   const seededRandom = (
@@ -117,6 +161,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
     setHolePosition([holeX, holeY]);
     setStrokes(0);
     setGameComplete(false);
+    setValidMoves([]);
   };
 
   // Create a fairway area around a position
@@ -270,8 +315,11 @@ const GolfGame: React.FC<GolfGameProps> = ({
         newY += selectedPower;
         break;
     }
+
+    // Reset states after moving
     setSelectedPower(0);
     setShowControls(false); // Hide controls after making a move
+    setValidMoves([]);
 
     if (!isValidMove(newX, newY)) return;
 
@@ -353,33 +401,45 @@ const GolfGame: React.FC<GolfGameProps> = ({
             }}
           >
             {grid.map((row, y) =>
-              row.map((cell, x) => (
-                <div
-                  key={`${x}-${y}`}
-                  style={{ aspectRatio: 1 }}
-                  className={`cell ${cell === CellType.EMPTY
-                      ? "empty"
-                      : cell === CellType.FAIRWAY
-                        ? "fairway"
-                        : cell === CellType.GREEN
-                          ? "green"
-                          : cell === CellType.TREE
-                            ? "tree"
-                            : cell === CellType.PLAYER
-                              ? "player"
-                              : cell === CellType.HOLE
-                                ? "hole"
-                                : ""
-                    }`}
-                >
-                  {cell === CellType.TREE && "🌲"}
-                  {cell === CellType.PLAYER && "🏌️"}
-                  {cell === CellType.HOLE && "⛳"}
-                  {(cell === CellType.GREEN ||
-                    cell === CellType.FAIRWAY ||
-                    cell === CellType.EMPTY) && <Dot size={8} />}
-                </div>
-              )),
+              row.map((cell, x) => {
+                // Check if this cell is a valid move destination
+                const isValidMove = validMoves.some(
+                  ([moveX, moveY]) => moveX === x && moveY === y,
+                );
+
+                return (
+                  <div
+                    key={`${x}-${y}`}
+                    style={{
+                      aspectRatio: 1,
+                      boxShadow: isValidMove
+                        ? "inset 0 0 0 3px rgba(255, 255, 0, 0.7)"
+                        : "none",
+                    }}
+                    className={`cell ${cell === CellType.EMPTY
+                        ? "empty"
+                        : cell === CellType.FAIRWAY
+                          ? "fairway"
+                          : cell === CellType.GREEN
+                            ? "green"
+                            : cell === CellType.TREE
+                              ? "tree"
+                              : cell === CellType.PLAYER
+                                ? "player"
+                                : cell === CellType.HOLE
+                                  ? "hole"
+                                  : ""
+                      }`}
+                  >
+                    {cell === CellType.TREE && "🌲"}
+                    {cell === CellType.PLAYER && "🏌️"}
+                    {cell === CellType.HOLE && "⛳"}
+                    {(cell === CellType.GREEN ||
+                      cell === CellType.FAIRWAY ||
+                      cell === CellType.EMPTY) && <Dot size={8} />}
+                  </div>
+                );
+              }),
             )}
           </div>
         </div>
