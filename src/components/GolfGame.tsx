@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Dot } from "./Dot";
+import "./GolfGame.css"; // Import the dedicated CSS file
 
 // TypeScript Enums and Types
 enum CellType {
@@ -22,7 +23,7 @@ type Direction =
   | "upRight"
   | "downLeft"
   | "downRight";
-type Power = 1 | 3 | 6;
+type Power = 1 | 3 | 6 | 0;
 
 interface GolfGameProps {
   seed: number;
@@ -46,9 +47,9 @@ const GolfGame: React.FC<GolfGameProps> = ({
   const [playerPosition, setPlayerPosition] = useState<Position | null>(null);
   const [holePosition, setHolePosition] = useState<Position | null>(null);
   const [strokes, setStrokes] = useState<number>(0);
-  const [selectedPower, setSelectedPower] = useState<Power>(1);
+  const [selectedPower, setSelectedPower] = useState<Power>(0);
   const [gameComplete, setGameComplete] = useState<boolean>(false);
-  const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
+  const [showControls, setShowControls] = useState<boolean>(false);
 
   // Initialize game with provided seed
   useEffect(() => {
@@ -232,7 +233,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
 
   // Handle player movement
   const handleMove = (direction: Direction): void => {
-    setIsControlsOpen(false);
     if (gameComplete || !playerPosition) return;
 
     const [currentX, currentY] = playerPosition;
@@ -270,6 +270,8 @@ const GolfGame: React.FC<GolfGameProps> = ({
         newY += selectedPower;
         break;
     }
+    setSelectedPower(0);
+    setShowControls(false); // Hide controls after making a move
 
     if (!isValidMove(newX, newY)) return;
 
@@ -319,6 +321,12 @@ const GolfGame: React.FC<GolfGameProps> = ({
     if (holePosition && newX === holePosition[0] && newY === holePosition[1]) {
       setGameComplete(true);
     }
+  };
+
+  // Select power and show controls
+  const handlePowerSelect = (power: Power) => {
+    setSelectedPower(power);
+    setShowControls(true);
   };
 
   return (
@@ -374,79 +382,95 @@ const GolfGame: React.FC<GolfGameProps> = ({
               )),
             )}
           </div>
+        </div>
+      </div>
 
-          <div
-            className="controls-toggle"
-            onClick={() => setIsControlsOpen(true)}
-          >
-            Open Controls
-          </div>
+      {/* Power Selector Bar */}
+      <div className="power-bar">
+        <button
+          className={`power-selector ${selectedPower === 1 ? "active" : ""}`}
+          onClick={() => handlePowerSelect(1)}
+        >
+          1
+        </button>
+        <button
+          className={`power-selector ${selectedPower === 3 ? "active" : ""}`}
+          onClick={() => handlePowerSelect(3)}
+        >
+          3
+        </button>
+        <button
+          className={`power-selector ${selectedPower === 6 ? "active" : ""}`}
+          onClick={() => handlePowerSelect(6)}
+        >
+          6
+        </button>
+      </div>
 
-          {/* Controls */}
-          <div className={isControlsOpen ? "controls open" : "controls"}>
-            <div className="direction-select">
-              <h3>Direction</h3>
-              <div className="direction-grid" style={{ aspectRatio: 1 }}>
-                <button onClick={() => handleMove("upLeft")}>↖</button>
-                <button onClick={() => handleMove("up")}>↑</button>
-                <button onClick={() => handleMove("upRight")}>↗</button>
-
-                <button onClick={() => handleMove("left")}>←</button>
-                <div className="empty-cell"></div>
-                <button onClick={() => handleMove("right")}>→</button>
-
-                <button onClick={() => handleMove("downLeft")}>↙</button>
-                <button onClick={() => handleMove("down")}>↓</button>
-                <button onClick={() => handleMove("downRight")}>↘</button>
-              </div>
+      {/* Floating Controls */}
+      {showControls && (
+        <div className="floating-controls">
+          <div className="control-pad">
+            <div className="control-row">
+              <button
+                className="direction-button"
+                onClick={() => handleMove("upLeft")}
+              >
+                ↖
+              </button>
+              <button
+                className="direction-button"
+                onClick={() => handleMove("up")}
+              >
+                ↑
+              </button>
+              <button
+                className="direction-button"
+                onClick={() => handleMove("upRight")}
+              >
+                ↗
+              </button>
             </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                alignItems: "flex-end",
-                gap: "0.5rem",
-              }}
-            >
-              <div className="power-select">
-                <h3>Power</h3>
-                <div className="power-buttons">
-                  <button
-                    className={selectedPower === 1 ? "active" : ""}
-                    onClick={() => setSelectedPower(1)}
-                  >
-                    1
-                  </button>
-                  <button
-                    className={selectedPower === 3 ? "active" : ""}
-                    onClick={() => setSelectedPower(3)}
-                  >
-                    3
-                  </button>
-                  <button
-                    className={selectedPower === 6 ? "active" : ""}
-                    onClick={() => setSelectedPower(6)}
-                  >
-                    6
-                  </button>
-                </div>
+            <div className="control-row">
+              <button
+                className="direction-button"
+                onClick={() => handleMove("left")}
+              >
+                ←
+              </button>
+              <div className="center-button">
+                <span className="power-indicator">{selectedPower}</span>
               </div>
-
-              <div className="back-to-menu-btn" onClick={onBackToMenu}>
-                Back to Menu
-              </div>
+              <button
+                className="direction-button"
+                onClick={() => handleMove("right")}
+              >
+                →
+              </button>
             </div>
-
-            <div
-              className="close-controls-btn"
-              onClick={() => setIsControlsOpen(false)}
-            >
-              Close Controls
+            <div className="control-row">
+              <button
+                className="direction-button"
+                onClick={() => handleMove("downLeft")}
+              >
+                ↙
+              </button>
+              <button
+                className="direction-button"
+                onClick={() => handleMove("down")}
+              >
+                ↓
+              </button>
+              <button
+                className="direction-button"
+                onClick={() => handleMove("downRight")}
+              >
+                ↘
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Completion Modal */}
       {gameComplete && (
