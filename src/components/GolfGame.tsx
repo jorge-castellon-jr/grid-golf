@@ -339,7 +339,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
       <div className="game-container">
         <div className="header">
           <button className="back-btn" onClick={onBackToMenu}>
-            ← Back
+            Back to Menu
           </button>
           <h1>Grid Golf</h1>
           <div className="score">
@@ -388,42 +388,12 @@ const GolfGame: React.FC<GolfGameProps> = ({
             )}
           </div>
 
-          <div
-            className="export-seed-btn"
-            onClick={exportSeed}
-            style={{
-              position: "fixed",
-              bottom: "6rem",
-              left: 0,
-              right: 0,
-              margin: "0 1rem",
-              textAlign: "center",
-              padding: "0.5rem",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              borderRadius: "1rem",
-              zIndex: 10,
-            }}
-          >
+          <div className="export-seed-btn-game" onClick={exportSeed}>
             Export Seed
           </div>
 
           <div
             className="controls-toggle"
-            style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              backgroundColor: "#228b22",
-              color: "white",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "4rem",
-              margin: "1rem",
-              borderRadius: "1rem",
-            }}
             onClick={() => setIsControlsOpen(true)}
           >
             Open Controls
@@ -453,6 +423,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 alignItems: "flex-end",
+                gap: "0.5rem",
               }}
             >
               <div className="power-select">
@@ -479,33 +450,13 @@ const GolfGame: React.FC<GolfGameProps> = ({
                 </div>
               </div>
 
-              <div
-                className="back-to-menu-btn"
-                style={{
-                  backgroundColor: "#2563eb",
-                  color: "white",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "4rem",
-                  borderRadius: "1rem",
-                }}
-                onClick={onBackToMenu}
-              >
+              <div className="back-to-menu-btn" onClick={onBackToMenu}>
                 Back to Menu
               </div>
             </div>
+
             <div
               className="close-controls-btn"
-              style={{
-                backgroundColor: "#8d8d8d",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "4rem",
-                borderRadius: "1rem",
-              }}
               onClick={() => setIsControlsOpen(false)}
             >
               Close Controls
