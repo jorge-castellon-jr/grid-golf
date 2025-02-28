@@ -24,7 +24,17 @@ type Direction =
   | "downRight";
 type Power = 1 | 3 | 6;
 
-const GolfGame: React.FC = () => {
+interface GolfGameProps {
+  seed: number;
+  onGameComplete: (score: number) => void;
+  onBackToMenu: () => void;
+}
+
+const GolfGame: React.FC<GolfGameProps> = ({
+  seed,
+  onGameComplete,
+  onBackToMenu,
+}) => {
   const WIDTH = 14;
   const HEIGHT = 20;
 
@@ -37,14 +47,23 @@ const GolfGame: React.FC = () => {
   const [holePosition, setHolePosition] = useState<Position | null>(null);
   const [strokes, setStrokes] = useState<number>(0);
   const [selectedPower, setSelectedPower] = useState<Power>(1);
-  const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 1000000));
   const [gameComplete, setGameComplete] = useState<boolean>(false);
   const [isControlsOpen, setIsControlsOpen] = useState<boolean>(false);
 
-  // Initialize game
+  // Initialize game with provided seed
   useEffect(() => {
     generateCourse(seed);
   }, [seed]);
+
+  // Handle game completion
+  useEffect(() => {
+    if (gameComplete) {
+      // Give time for user to see completion state before modal opens
+      setTimeout(() => {
+        // Don't automatically go back to menu
+      }, 500);
+    }
+  }, [gameComplete]);
 
   // Seeded random function
   const seededRandom = (
@@ -302,10 +321,26 @@ const GolfGame: React.FC = () => {
     }
   };
 
+  // Export current hole seed
+  const exportSeed = () => {
+    navigator.clipboard
+      .writeText(seed.toString())
+      .then(() => {
+        alert("Seed copied to clipboard!");
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+        alert("Seed: " + seed);
+      });
+  };
+
   return (
     <div className="golf-game">
       <div className="game-container">
         <div className="header">
+          <button className="back-btn" onClick={onBackToMenu}>
+            ← Back
+          </button>
           <h1>Grid Golf</h1>
           <div className="score">
             <span>
@@ -354,6 +389,27 @@ const GolfGame: React.FC = () => {
           </div>
 
           <div
+            className="export-seed-btn"
+            onClick={exportSeed}
+            style={{
+              position: "fixed",
+              bottom: "6rem",
+              left: 0,
+              right: 0,
+              margin: "0 1rem",
+              textAlign: "center",
+              padding: "0.5rem",
+              backgroundColor: "#3b82f6",
+              color: "white",
+              borderRadius: "1rem",
+              zIndex: 10,
+            }}
+          >
+            Export Seed
+          </div>
+
+          <div
+            className="controls-toggle"
             style={{
               position: "fixed",
               bottom: 0,
@@ -424,6 +480,7 @@ const GolfGame: React.FC = () => {
               </div>
 
               <div
+                className="back-to-menu-btn"
                 style={{
                   backgroundColor: "#2563eb",
                   color: "white",
@@ -433,15 +490,13 @@ const GolfGame: React.FC = () => {
                   height: "4rem",
                   borderRadius: "1rem",
                 }}
-                onClick={() => {
-                  setSeed(Math.floor(Math.random() * 1000000));
-                  setIsControlsOpen(false);
-                }}
+                onClick={onBackToMenu}
               >
-                New Hole
+                Back to Menu
               </div>
             </div>
             <div
+              className="close-controls-btn"
               style={{
                 backgroundColor: "#8d8d8d",
                 color: "white",
@@ -465,11 +520,15 @@ const GolfGame: React.FC = () => {
           <div className="modal">
             <h2>Hole Complete!</h2>
             <p>You completed the hole in {strokes} strokes.</p>
-            <button
-              onClick={() => setSeed(Math.floor(Math.random() * 1000000))}
-            >
-              Next Hole
-            </button>
+            <div className="modal-buttons">
+              <button
+                onClick={() => {
+                  onGameComplete(strokes);
+                }}
+              >
+                Back to Menu
+              </button>
+            </div>
           </div>
         </div>
       )}

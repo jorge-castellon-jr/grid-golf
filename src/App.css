@@ -16,6 +16,19 @@ body {
   margin: 0;
 }
 
+.App {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: #166534;
+}
+
 .golf-game {
   display: flex;
   flex-direction: column;
@@ -128,6 +141,7 @@ body {
   flex-direction: column;
   gap: 1rem;
   transition: bottom 0.3s ease-in-out;
+  z-index: 40;
 }
 .controls.open {
   bottom: 0;
@@ -195,7 +209,6 @@ body {
 }
 
 .modal-overlay {
-  background: red;
   position: fixed;
   top: 0;
   left: 0;
@@ -249,4 +262,207 @@ body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right)
       env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
+}
+
+/* Start Screen Styles */
+.start-screen {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.start-screen h1 {
+  text-align: center;
+  color: #166534;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.course-selector,
+.hole-selector {
+  margin-bottom: 2rem;
+}
+
+.course-selector h2,
+.hole-selector h2 {
+  color: #166534;
+  margin-bottom: 1rem;
+}
+
+.course-list,
+.hole-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.course-item,
+.hole-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.course-item.selected {
+  border: 2px solid #166534;
+}
+
+.course-details,
+.hole-details {
+  flex: 1;
+}
+
+.course-details h3,
+.hole-details h3 {
+  margin: 0 0 0.5rem 0;
+  color: #166534;
+}
+
+.course-details p,
+.hole-details p {
+  margin: 0;
+  color: #666;
+}
+
+.last-played {
+  font-size: 0.8rem;
+  color: #888 !important;
+}
+
+.hole-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hole-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.import-seed-btn {
+  background-color: #6366f1;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-course-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.export-seed-btn {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.play-hole-btn {
+  background-color: #166534;
+  color: white;
+}
+
+.add-course-btn,
+.add-hole-btn {
+  background-color: #f3f4f6;
+  color: #166534;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.new-course-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.new-course-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+
+.back-btn {
+  background-color: #f3f4f6;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: none;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modal-buttons button {
+  flex: 1;
+}
+
+/* Seed Importer Styles */
+.seed-importer h3 {
+  color: #166534;
+  margin-top: 0;
+}
+
+.seed-importer p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.import-btn {
+  background-color: #166534;
+}
+
+.cancel-btn {
+  background-color: #6b7280;
+}
+
+/* Make all buttons consistent */
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+button:hover {
+  opacity: 0.9;
 }
