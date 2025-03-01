@@ -433,7 +433,8 @@
   cursor: pointer;
   transition: var(--transition, all 0.3s ease-in-out);
   border: 2px solid transparent;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   position: relative;
   overflow: hidden;
@@ -503,6 +504,7 @@
 
 .hole-actions {
   margin-left: 1rem;
+  grid-column: 1 / 3;
 }
 
 .hole-actions button {
@@ -532,6 +534,7 @@
   font-size: 1rem;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .play-hole-btn:before {
@@ -631,20 +634,18 @@
 .delete-course-btn {
   background-color: #ef4444;
   color: white;
-  padding: 0.6rem 1rem;
   border-radius: var(--border-radius, 16px);
   font-weight: 600;
   transition: var(--transition, all 0.3s ease-in-out);
   display: flex;
   align-items: center;
+  justify-content: center;
   border: none;
-  margin-left: 1rem;
   cursor: pointer;
-}
-
-.delete-course-btn:before {
-  content: "🗑️";
-  margin-right: 5px;
+  height: 40px;
+  width: 40px;
+  line-height: 0;
+  font-size: 20px;
 }
 
 .delete-course-btn:hover {

@@ -184,7 +184,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
                     setShowDeleteConfirm(course.id);
                   }}
                 >
-                  Delete
+                  -
                 </button>
               </div>
             ))}

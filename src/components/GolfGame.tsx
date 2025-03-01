@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Dot } from "./Dot";
 import "./GolfGame.css";
 
 // TypeScript Enums and Types
@@ -53,7 +52,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
   const [gameComplete, setGameComplete] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(false);
   const [validMoves, setValidMoves] = useState<Position[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
   const [clouds, setClouds] = useState<
     { x: number; y: number; size: number; speed: number }[]
   >([]);
@@ -127,32 +125,13 @@ const GolfGame: React.FC<GolfGameProps> = ({
     return () => clearInterval(interval);
   }, [WIDTH]);
 
-  // Handle game completion
-  useEffect(() => {
-    if (gameComplete) {
-      // Play completion animation
-      setMessage("Great shot!");
-
-      // Give time for user to see completion state before modal opens
-      setTimeout(() => {
-        setMessage(null);
-      }, 2000);
-    }
-  }, [gameComplete]);
-
   // Calculate valid moves when power changes
   useEffect(() => {
     if (selectedPower > 0 && playerPosition) {
       const newValidMoves = calculateValidMoves();
       setValidMoves(newValidMoves);
-
-      // Add swing preview animation
-      if (newValidMoves.length > 0) {
-        setMessage("Choose direction...");
-      }
     } else {
       setValidMoves([]);
-      setMessage(null);
     }
   }, [selectedPower, playerPosition]);
 
@@ -244,12 +223,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
     setStrokes(0);
     setGameComplete(false);
     setValidMoves([]);
-    setMessage("Welcome to the course!");
-
-    // Clear message after a few seconds
-    setTimeout(() => {
-      setMessage(null);
-    }, 3000);
   };
 
   // Create a fairway area around a position
@@ -519,18 +492,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
     setPlayerPosition([newX, newY]);
     setStrokes(strokes + 1);
 
-    // Set message based on terrain
-    if (newGrid[newY][newX] === CellType.BUNKER) {
-      setMessage("In the bunker!");
-    } else if (isOnGreen) {
-      setMessage("On the green!");
-    }
-
-    // Clear message after a few seconds
-    setTimeout(() => {
-      setMessage(null);
-    }, 2000);
-
     // Check if hole is complete
     if (holePosition && newX === holePosition[0] && newY === holePosition[1]) {
       setGameComplete(true);
@@ -577,15 +538,12 @@ const GolfGame: React.FC<GolfGameProps> = ({
           <button className="back-btn" onClick={onBackToMenu}>
             Back to Menu
           </button>
-          <h1>Cozy Golf</h1>
           <div className="score">
             <span>
               Strokes: <strong>{strokes}</strong>
             </span>
           </div>
         </div>
-
-        {message && <div className="message-bubble">{message}</div>}
 
         <div className="game-content">
           {/* Game Board */}
@@ -608,7 +566,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
                     style={{
                       aspectRatio: 1,
                       boxShadow: isValidMove
-                        ? "inset 0 0 0 3px rgba(255, 211, 42, 0.8)"
+                        ? "inset 0 0 0 3px rgba(255, 211, 42, 1)"
                         : "none",
                     }}
                     className={`cell ${cell === CellType.EMPTY
@@ -635,10 +593,6 @@ const GolfGame: React.FC<GolfGameProps> = ({
                     {cell === CellType.HOLE && "⛳"}
                     {cell === CellType.FLOWER && "🌼"}
                     {cell === CellType.BUNKER && ""}
-                    {(cell === CellType.GREEN ||
-                      cell === CellType.FAIRWAY ||
-                      cell === CellType.EMPTY ||
-                      cell === CellType.BUNKER) && <Dot size={8} />}
                   </div>
                 );
               }),
