@@ -1,17 +1,7 @@
 import { useState, useEffect } from "react";
 
 // Course names that will be used as seeds for initial courses
-const COURSE_NAMES = [
-  "Pine Valley",
-  "Augusta National",
-  "St. Andrews",
-  "Pebble Beach",
-  "Royal County Down",
-  "Cypress Point",
-  "Shinnecock Hills",
-  "Royal Melbourne",
-  "Muirfield",
-];
+const COURSE_NAMES = ["Pine Valley", "Pebble Beach", "Cypress Point"];
 
 export interface Hole {
   id: string;

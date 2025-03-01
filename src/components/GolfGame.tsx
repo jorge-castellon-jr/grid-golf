@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Dot } from "./Dot";
-import "./GolfGame.css"; // Import the dedicated CSS file
+import "./GolfGame.css";
 
 // TypeScript Enums and Types
 enum CellType {
@@ -10,6 +10,8 @@ enum CellType {
   TREE = 3,
   PLAYER = 4,
   HOLE = 5,
+  FLOWER = 6,
+  BUNKER = 7,
 }
 
 type Position = [number, number]; // [x, y]
@@ -51,19 +53,90 @@ const GolfGame: React.FC<GolfGameProps> = ({
   const [gameComplete, setGameComplete] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(false);
   const [validMoves, setValidMoves] = useState<Position[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [clouds, setClouds] = useState<
+    { x: number; y: number; size: number; speed: number }[]
+  >([]);
+  const [birds, setBirds] = useState<
+    { x: number; y: number; direction: number }[]
+  >([]);
+  const [animations, setAnimations] = useState<
+    { x: number; y: number; type: string }[]
+  >([]);
 
   // Initialize game with provided seed
   useEffect(() => {
     generateCourse(seed);
+    generateAmbientElements(seed);
   }, [seed]);
+
+  // Generate ambient elements like clouds and birds
+  const generateAmbientElements = (seedValue: number) => {
+    let seed = seedValue;
+
+    // Generate 3-5 clouds
+    const numClouds = seededRandom(seed++, 3, 5);
+    const newClouds = [];
+
+    for (let i = 0; i < numClouds; i++) {
+      newClouds.push({
+        x: seededRandom(seed++, WIDTH * 50),
+        y: seededRandom(seed++, 100, 200),
+        size: seededRandom(seed++, 50, 100),
+        speed: seededRandom(seed++, 5, 15) / 10,
+      });
+    }
+
+    setClouds(newClouds);
+
+    // Occasionally add birds
+    if (seededRandom(seed++, 10) > 6) {
+      const numBirds = seededRandom(seed++, 1, 3);
+      const newBirds = [];
+
+      for (let i = 0; i < numBirds; i++) {
+        newBirds.push({
+          x: seededRandom(seed++, WIDTH * 50),
+          y: seededRandom(seed++, 50, 150),
+          direction: seededRandom(seed++, 2) === 0 ? -1 : 1,
+        });
+      }
+
+      setBirds(newBirds);
+    }
+  };
+
+  // Animate clouds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClouds((prevClouds) =>
+        prevClouds.map((cloud) => ({
+          ...cloud,
+          x: (cloud.x + cloud.speed) % (WIDTH * 50 + cloud.size),
+        })),
+      );
+
+      setBirds((prevBirds) =>
+        prevBirds.map((bird) => ({
+          ...bird,
+          x: bird.x + bird.direction * 2,
+        })),
+      );
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [WIDTH]);
 
   // Handle game completion
   useEffect(() => {
     if (gameComplete) {
+      // Play completion animation
+      setMessage("Great shot!");
+
       // Give time for user to see completion state before modal opens
       setTimeout(() => {
-        // Don't automatically go back to menu
-      }, 500);
+        setMessage(null);
+      }, 2000);
     }
   }, [gameComplete]);
 
@@ -72,8 +145,14 @@ const GolfGame: React.FC<GolfGameProps> = ({
     if (selectedPower > 0 && playerPosition) {
       const newValidMoves = calculateValidMoves();
       setValidMoves(newValidMoves);
+
+      // Add swing preview animation
+      if (newValidMoves.length > 0) {
+        setMessage("Choose direction...");
+      }
     } else {
       setValidMoves([]);
+      setMessage(null);
     }
   }, [selectedPower, playerPosition]);
 
@@ -152,6 +231,9 @@ const GolfGame: React.FC<GolfGameProps> = ({
     // Add trees and other obstacles
     addObstacles(newGrid, seedValue);
 
+    // Add decorative elements like flowers
+    addDecorations(newGrid, seedValue);
+
     // Mark player and hole positions
     newGrid[playerY][playerX] = CellType.PLAYER;
     newGrid[holeY][holeX] = CellType.HOLE;
@@ -162,6 +244,12 @@ const GolfGame: React.FC<GolfGameProps> = ({
     setStrokes(0);
     setGameComplete(false);
     setValidMoves([]);
+    setMessage("Welcome to the course!");
+
+    // Clear message after a few seconds
+    setTimeout(() => {
+      setMessage(null);
+    }, 3000);
   };
 
   // Create a fairway area around a position
@@ -243,6 +331,23 @@ const GolfGame: React.FC<GolfGameProps> = ({
 
     // Add green around the hole
     createFairwayArea(grid, endX, endY, 2, CellType.GREEN);
+
+    // Add some bunkers around the green for challenge
+    for (let i = 0; i < 3; i++) {
+      const angle = seededRandom(seed++, 360) * (Math.PI / 180);
+      const distance = seededRandom(seed++, 2, 4);
+      const bunkerX = Math.round(endX + Math.cos(angle) * distance);
+      const bunkerY = Math.round(endY + Math.sin(angle) * distance);
+
+      if (bunkerX >= 0 && bunkerX < WIDTH && bunkerY >= 0 && bunkerY < HEIGHT) {
+        if (
+          grid[bunkerY][bunkerX] !== CellType.GREEN &&
+          grid[bunkerY][bunkerX] !== CellType.HOLE
+        ) {
+          grid[bunkerY][bunkerX] = CellType.BUNKER;
+        }
+      }
+    }
   };
 
   // Add trees and obstacles
@@ -255,6 +360,42 @@ const GolfGame: React.FC<GolfGameProps> = ({
           if (rand < 70) {
             // 70% chance of tree in empty spaces
             grid[y][x] = CellType.TREE;
+          }
+        }
+      }
+    }
+  };
+
+  // Add decorative elements
+  const addDecorations = (grid: Grid, seedValue: number): void => {
+    let seed = seedValue;
+
+    // Add flowers along the fairway edges
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH; x++) {
+        if (grid[y][x] === CellType.FAIRWAY) {
+          // Check if this is an edge cell
+          let isEdge = false;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+
+              const nx = x + dx;
+              const ny = y + dy;
+
+              if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT) {
+                if (
+                  grid[ny][nx] === CellType.EMPTY ||
+                  grid[ny][nx] === CellType.TREE
+                ) {
+                  isEdge = true;
+                }
+              }
+            }
+          }
+
+          if (isEdge && seededRandom(seed++, 100) < 15) {
+            grid[y][x] = CellType.FLOWER;
           }
         }
       }
@@ -316,6 +457,16 @@ const GolfGame: React.FC<GolfGameProps> = ({
         break;
     }
 
+    // Add swing animation
+    setAnimations([
+      ...animations,
+      {
+        x: currentX,
+        y: currentY,
+        type: "swing",
+      },
+    ]);
+
     // Reset states after moving
     setSelectedPower(0);
     setShowControls(false); // Hide controls after making a move
@@ -325,6 +476,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
 
     // Update grid
     const newGrid: Grid = JSON.parse(JSON.stringify(grid));
+    let isOnGreen = false;
 
     // Update previous position
     if (
@@ -354,8 +506,10 @@ const GolfGame: React.FC<GolfGameProps> = ({
         (cell) => cell === CellType.FAIRWAY,
       ).length;
 
-      newGrid[currentY][currentX] =
-        greenCount > fairwayCount ? CellType.GREEN : CellType.FAIRWAY;
+      isOnGreen = greenCount > fairwayCount;
+      newGrid[currentY][currentX] = isOnGreen
+        ? CellType.GREEN
+        : CellType.FAIRWAY;
     }
 
     // Update new position
@@ -364,6 +518,18 @@ const GolfGame: React.FC<GolfGameProps> = ({
     setGrid(newGrid);
     setPlayerPosition([newX, newY]);
     setStrokes(strokes + 1);
+
+    // Set message based on terrain
+    if (newGrid[newY][newX] === CellType.BUNKER) {
+      setMessage("In the bunker!");
+    } else if (isOnGreen) {
+      setMessage("On the green!");
+    }
+
+    // Clear message after a few seconds
+    setTimeout(() => {
+      setMessage(null);
+    }, 2000);
 
     // Check if hole is complete
     if (holePosition && newX === holePosition[0] && newY === holePosition[1]) {
@@ -379,18 +545,47 @@ const GolfGame: React.FC<GolfGameProps> = ({
 
   return (
     <div className="golf-game">
+      {/* Ambient Elements */}
+      <div className="ambient-container">
+        {clouds.map((cloud, index) => (
+          <div
+            key={`cloud-${index}`}
+            className="cloud"
+            style={{
+              left: `${cloud.x}px`,
+              top: `${cloud.y}px`,
+              width: `${cloud.size}px`,
+              height: `${cloud.size / 2}px`,
+            }}
+          />
+        ))}
+
+        {birds.map((bird, index) => (
+          <div
+            key={`bird-${index}`}
+            className={`bird ${bird.direction < 0 ? "flying-left" : "flying-right"}`}
+            style={{
+              left: `${bird.x}px`,
+              top: `${bird.y}px`,
+            }}
+          />
+        ))}
+      </div>
+
       <div className="game-container">
         <div className="header">
           <button className="back-btn" onClick={onBackToMenu}>
             Back to Menu
           </button>
-          <h1>Grid Golf</h1>
+          <h1>Cozy Golf</h1>
           <div className="score">
             <span>
               Strokes: <strong>{strokes}</strong>
             </span>
           </div>
         </div>
+
+        {message && <div className="message-bubble">{message}</div>}
 
         <div className="game-content">
           {/* Game Board */}
@@ -413,7 +608,7 @@ const GolfGame: React.FC<GolfGameProps> = ({
                     style={{
                       aspectRatio: 1,
                       boxShadow: isValidMove
-                        ? "inset 0 0 0 3px rgba(255, 255, 0, 0.7)"
+                        ? "inset 0 0 0 3px rgba(255, 211, 42, 0.8)"
                         : "none",
                     }}
                     className={`cell ${cell === CellType.EMPTY
@@ -428,15 +623,22 @@ const GolfGame: React.FC<GolfGameProps> = ({
                                 ? "player"
                                 : cell === CellType.HOLE
                                   ? "hole"
-                                  : ""
+                                  : cell === CellType.FLOWER
+                                    ? "flower"
+                                    : cell === CellType.BUNKER
+                                      ? "bunker"
+                                      : ""
                       }`}
                   >
-                    {cell === CellType.TREE && "🌲"}
+                    {cell === CellType.TREE && "🌳"}
                     {cell === CellType.PLAYER && "🏌️"}
                     {cell === CellType.HOLE && "⛳"}
+                    {cell === CellType.FLOWER && "🌼"}
+                    {cell === CellType.BUNKER && ""}
                     {(cell === CellType.GREEN ||
                       cell === CellType.FAIRWAY ||
-                      cell === CellType.EMPTY) && <Dot size={8} />}
+                      cell === CellType.EMPTY ||
+                      cell === CellType.BUNKER) && <Dot size={8} />}
                   </div>
                 );
               }),

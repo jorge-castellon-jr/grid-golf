@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useGolfCourses } from "../hooks/useGolfCourses";
+import "./StartScreen.css"; // We'll add a separate CSS file
 
 interface StartScreenProps {
   onStartGame: (courseId: string, holeId: string, seed: number) => void;
@@ -21,6 +22,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null,
   );
+  const [animations, setAnimations] = useState<
+    { type: string; x: number; y: number }[]
+  >([]);
 
   // Handle initial load - ensure courses exist
   useEffect(() => {
@@ -38,6 +42,34 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
       setSelectedCourse(courses[0].id);
     }
   }, [initialized, courses, selectedCourse]);
+
+  // Add random ambient animations
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomX = Math.floor(Math.random() * window.innerWidth);
+      const randomY = Math.floor((Math.random() * window.innerHeight) / 2);
+      const animationTypes = ["butterfly", "leaf", "bird"];
+      const randomType =
+        animationTypes[Math.floor(Math.random() * animationTypes.length)];
+
+      // Add animation
+      setAnimations((prev) => [
+        ...prev,
+        {
+          type: randomType,
+          x: randomX,
+          y: randomY,
+        },
+      ]);
+
+      // Remove animation after it completes
+      setTimeout(() => {
+        setAnimations((prev) => prev.slice(1));
+      }, 10000);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreateCourse = () => {
     if (newCourseName.trim()) {
@@ -94,100 +126,136 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
 
   return (
     <div className="start-screen">
-      <h1>Grid Golf</h1>
-
-      <div className="course-selector">
-        <h2>Select Course</h2>
-        <div className="course-list">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className={`course-item ${selectedCourse === course.id ? "selected" : ""}`}
-              onClick={() => setSelectedCourse(course.id)}
-            >
-              <div className="course-details">
-                <h3>{course.name}</h3>
-                <p>
-                  {course.holes.length}{" "}
-                  {course.holes.length === 1 ? "hole" : "holes"}
-                </p>
-                {course.lastPlayed && (
-                  <p className="last-played">
-                    Last played:{" "}
-                    {new Date(course.lastPlayed).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-              <button
-                className="delete-course-btn"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent selecting course when clicking delete
-                  setShowDeleteConfirm(course.id);
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          ))}
-
-          {showNewCourseInput ? (
-            <div className="new-course-input">
-              <input
-                type="text"
-                value={newCourseName}
-                onChange={(e) => setNewCourseName(e.target.value)}
-                placeholder="Course name"
-                autoFocus
-              />
-              <button onClick={handleCreateCourse}>Create</button>
-              <button onClick={() => setShowNewCourseInput(false)}>
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              className="add-course-btn"
-              onClick={() => setShowNewCourseInput(true)}
-            >
-              + Add New Course
-            </button>
-          )}
-        </div>
+      {/* Ambient animations */}
+      <div className="ambient-animations">
+        {animations.map((animation, index) => (
+          <div
+            key={index}
+            className={`ambient-element ${animation.type}`}
+            style={{
+              left: `${animation.x}px`,
+              top: `${animation.y}px`,
+            }}
+          />
+        ))}
       </div>
 
-      {selectedCourseData && (
-        <div className="hole-selector">
-          <h2>Select Hole</h2>
-          <div className="hole-list">
-            {selectedCourseData.holes.map((hole) => (
+      {/* Background elements */}
+      <div className="background-elements">
+        <div className="sun"></div>
+        <div className="cloud cloud-1"></div>
+        <div className="cloud cloud-2"></div>
+        <div className="cloud cloud-3"></div>
+        <div className="start-tree tree-1"></div>
+        <div className="start-tree tree-2"></div>
+        <div className="grass"></div>
+      </div>
+
+      <div className="content-container">
+        <h1>Cozy Golf</h1>
+
+        <div className="course-selector">
+          <h2>Select Course</h2>
+          <div className="course-list">
+            {courses.map((course) => (
               <div
-                key={hole.id}
-                className={`hole-item ${hole.completed ? "completed" : ""}`}
+                key={course.id}
+                className={`course-item ${selectedCourse === course.id ? "selected" : ""}`}
+                onClick={() => setSelectedCourse(course.id)}
               >
-                <div className="hole-details">
-                  <h3>{hole.name}</h3>
-                  {hole.bestScore && (
-                    <p>
-                      Best: {hole.bestScore}{" "}
-                      {hole.bestScore === 1 ? "stroke" : "strokes"}
+                <div className="course-icon">🏝️</div>
+                <div className="course-details">
+                  <h3>{course.name}</h3>
+                  <p>
+                    {course.holes.length}{" "}
+                    {course.holes.length === 1 ? "hole" : "holes"}
+                  </p>
+                  {course.lastPlayed && (
+                    <p className="last-played">
+                      Last played:{" "}
+                      {new Date(course.lastPlayed).toLocaleDateString()}
                     </p>
                   )}
                 </div>
-                <div className="hole-actions">
+                <button
+                  className="delete-course-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent selecting course when clicking delete
+                    setShowDeleteConfirm(course.id);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+            {showNewCourseInput ? (
+              <div className="new-course-input">
+                <input
+                  type="text"
+                  value={newCourseName}
+                  onChange={(e) => setNewCourseName(e.target.value)}
+                  placeholder="Course name"
+                  autoFocus
+                />
+                <div className="input-buttons">
+                  <button className="create-btn" onClick={handleCreateCourse}>
+                    Create
+                  </button>
                   <button
-                    className="play-hole-btn"
-                    onClick={() =>
-                      onStartGame(selectedCourseData.id, hole.id, hole.seed)
-                    }
+                    className="cancel-btn"
+                    onClick={() => setShowNewCourseInput(false)}
                   >
-                    Play
+                    Cancel
                   </button>
                 </div>
               </div>
-            ))}
+            ) : (
+              <button
+                className="add-course-btn"
+                onClick={() => setShowNewCourseInput(true)}
+              >
+                + Add New Course
+              </button>
+            )}
           </div>
         </div>
-      )}
+
+        {selectedCourseData && (
+          <div className="hole-selector">
+            <h2>Select Hole</h2>
+            <div className="hole-list">
+              {selectedCourseData.holes.map((hole) => (
+                <div
+                  key={hole.id}
+                  className={`hole-item ${hole.completed ? "completed" : ""}`}
+                >
+                  <div className="hole-icon">⛳</div>
+                  <div className="hole-details">
+                    <h3>{hole.name}</h3>
+                    {hole.bestScore && (
+                      <p>
+                        Best: {hole.bestScore}{" "}
+                        {hole.bestScore === 1 ? "stroke" : "strokes"}
+                      </p>
+                    )}
+                  </div>
+                  <div className="hole-actions">
+                    <button
+                      className="play-hole-btn"
+                      onClick={() =>
+                        onStartGame(selectedCourseData.id, hole.id, hole.seed)
+                      }
+                    >
+                      Play
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Course creation animation overlay */}
       {isCreatingCourse && (
